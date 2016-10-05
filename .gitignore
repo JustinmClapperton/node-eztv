@@ -1,15 +1,25 @@
-lib-cov
-*.seed
-*.log
-*.csv
-*.dat
-*.out
-*.pid
-*.gz
+node_modules/
+.idea/
+*.iml
+*.swp
+*.swo
+npm
 
-pids
+# Logs
 logs
-results
+*.log
 
-npm-debug.log
+# Runtime data
+pids
+*.pid
+*.seed
+
+# node-waf configuration
+.lock-wscript
+
+# Dependency directory
 node_modules
+
+# OSX
+.DS_Store
+lib
