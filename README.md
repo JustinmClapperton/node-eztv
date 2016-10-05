@@ -16,24 +16,21 @@ npm install eztv --save
 ```js
 import eztv from 'eztv';
 
-eztv.getShows({ query: 'big bang' }, (error, results) => {
-  // Do stuff...
-});
+eztv
+  .getShows({ query: 'big bang' })
+  .then(results => {
+    console.log(results);
+  });
 ```
 
 ### Methods
-#### `getShows(options, callback)`
+#### `getShows(options)`
 
 Returns a list of shows.
 
 `options`: An optional options object. Currently supports:
 
 - `query`: Show title to search for. If this option is ommited, all shows are returned.
-
-`callback`: A function that takes two parameters:
-
-- `error`: Error object or null.
-- `results`: Array of shows. 
 
 Each result is an object:
 
@@ -47,16 +44,11 @@ Each result is an object:
 }
 ```
 
-#### `getShowEpisodes(showId, callback)`
+#### `getShowEpisodes(showId)`
 
 Returns a list of episodes for a given show.
 
 `showId`: The show ID.
-
-`callback`: A function that takes two parameters:
-
-- `error`: Error object or null.
-- `results`: Array of episodes.
 
 **Returns:**
 

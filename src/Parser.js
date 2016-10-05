@@ -7,7 +7,7 @@ import S from 'string';
 const urlRoot = 'https://eztv.ch/';
 // var urlRoot = "https://eztv-proxy.net/";
 
-function getShows(options, callback) {
+function getShows(options) {
   request(`${urlRoot}showlist/`, (error, response, body) => {
     if (!error && response.statusCode === 200) {
       const list = [];
