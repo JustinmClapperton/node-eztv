@@ -9,7 +9,7 @@ import string from 'string';
  */
 const urlRoot = 'https://eztv.unblocked.stream';
 
-function getShows(options: Object = {}) {
+function getShows(itemTitle: string, options: Object = {}) {
   return fetch(`${urlRoot}/showlist/`)
     .then(res => res.text())
     .then(res => {
@@ -47,68 +47,75 @@ function getShows(options: Object = {}) {
 }
 
 function getShowEpisodes(showId: string) {
-  return fetch(`${urlRoot}shows/${showId}/`, (error, response, res) => {
-    if (!error && response.statusCode === 200) {
+  return fetch(`${urlRoot}shows/${showId}/`)
+    .then(res => res.text())
+    .then(res => {
       const result = {
         id: showId,
         episodes: []
       };
 
       const $ = cheerio.load(res);
+      const title = $('td.section_post_header').eq(0).find('b').text();
+      const episodes = $('table.forum_header_noborder tr[name=hover]');
 
-      result.title = $('td.section_post_header').eq(0).find('b').text();
+      episodes
+        .filter(element => {
+          const url = $(element)
+            .find('td')
+            .eq(1)
+            .find('a')
+            .attr('href');
 
-      const $episodes = $('table.forum_header_noborder tr[name=hover]');
-      $episodes.each((i, e) => {
-        const episode = {};
+          return (
+            !!url
+          );
+        })
+        .map((index, element) => {
+          const url = $(element)
+            .find('td')
+            .eq(1)
+            .find('a')
+            .attr('href');
 
-        episode.url = $(e)
-          .find('td')
-          .eq(1)
-          .find('a')
-          .attr('href');
+          // const urlRegex = url.match(/\/ep\/(\d+)\/.*/);
+          const _title = $(element)
+            .find('td')
+            .eq(1)
+            .find('a')
+            .text();
 
-        if (!episode.url) return;
-        const urlRegex = episode.url.match(/\/ep\/(\d+)\/.*/);
-        if (urlRegex) {
-          episode.id = parseInt(urlRegex[1], 10);
-        }
+          // const titleRegex = title.match(/(.+) s?(\d+)[ex](\d+)(e(\d+))?(.*)/i);
+          //
+          // if (titleRegex) {
+          //   const show = titleRegex[1];
+          //   const seasonNumber = parseInt(titleRegex[2], 10);
+          //   const episodeNumber = parseInt(titleRegex[3], 10);
+          //   const episodeNumber2 = parseInt(titleRegex[5], 10);
+          //   const extra = titleRegex[6].trim();
+          //   const proper = extra.toLowerCase().indexOf('proper') >= 0;
+          //   const repack = extra.toLowerCase().indexOf('repack') >= 0;
+          // }
 
-        episode.title = $(e)
-          .find('td')
-          .eq(1)
-          .find('a')
-          .text();
+          const size = String($(element).find('td').eq(3).text());
+          const magnet = $(element)
+            .find('td')
+            .eq(2)
+            .find('a.magnet')
+            .attr('href');
 
-        const titleRegex = episode.title.match(/(.+) s?(\d+)[ex](\d+)(e(\d+))?(.*)/i);
+          const torrentURL = $(element)
+            .find('td')
+            .eq(2)
+            .find('a.download_1')
+            .attr('href');
 
-        if (titleRegex) {
-          episode.show = titleRegex[1];
-          episode.seasonNumber = parseInt(titleRegex[2], 10);
-          episode.episodeNumber = parseInt(titleRegex[3], 10);
-          episode.episodeNumber2 = parseInt(titleRegex[5], 10);
-          episode.extra = titleRegex[6].trim();
-          episode.proper = episode.extra.toLowerCase().indexOf('proper') >= 0;
-          episode.repack = episode.extra.toLowerCase().indexOf('repack') >= 0;
-        }
-
-        episode.size = String($(e).find('td').eq(3).text());
-        episode.magnet = $(e)
-          .find('td')
-          .eq(2)
-          .find('a.magnet')
-          .attr('href');
-
-        episode.torrentURL = $(e)
-          .find('td')
-          .eq(2)
-          .find('a.download_1')
-          .attr('href');
-
-        result.episodes.push(episode);
-      });
-    }
-  });
+          return { url, torrentURL, magnet, size, _title };
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 }
 
 export default { getShowEpisodes, getShows };
