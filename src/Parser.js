@@ -1,72 +1,61 @@
-/* eslint new-cap: 0 */
-import request from 'request';
+// @flow
+import fetch from 'isomorphic-fetch';
 import cheerio from 'cheerio';
-import S from 'string';
+import string from 'string';
 
 
-const urlRoot = 'https://eztv.ch/';
-// var urlRoot = "https://eztv-proxy.net/";
+/**
+ * @NOTE: An alternative API endpoint is https://eztv-proxy.net
+ */
+const urlRoot = 'https://eztv.ag';
 
-function getShows(options) {
-  request(`${urlRoot}showlist/`, (error, response, body) => {
-    if (!error && response.statusCode === 200) {
-      const list = [];
-      const $ = cheerio.load(body);
+function getShows(options: Object) {
+  return fetch('https://eztv.ag/showlist/')
+    .then(res => res.text())
+    .then(res => {
+      const $ = cheerio.load(res);
       const elements = $('table.forum_header_border tr[name=hover]');
 
-      elements.each((i, e) => {
-        const show = {};
+      return elements
+        .filter(function filterElements() {
+          const url = $(this).find('.forum_thread_post a').attr('href');
+          const regex = url.match(/\/shows\/(\d+)\/([^\/]+)/);
+          const title = $(this).find('.forum_thread_post a').text();
 
-        show.url = $(e)
-          .find('td')
-          .eq(0)
-          .find('a')
-          .attr('href');
+          return (
+            !!url &&
+            regex &&
+            title
+          );
+        })
+        .map(function mapElements(element) {
+          const url = $(this).find('.forum_thread_post a').attr('href');
+          const title = $(this).find('.forum_thread_post a').text();
+          const status = $(element)
+            .find('td')
+            .eq(2)
+            .find('font')
+            .attr('class');
 
-        if (!show.url) {
-          return;
-        }
-        const regex = show.url.match(/\/shows\/(\d+)\/([^\/]+)/);
-        if (!regex) {
-          return;
-        }
-        show.id = parseInt(regex[1], 10);
-        show.slug = regex[2];
-
-        let title = $(e).find('td').eq(0).text();
-
-        if (S(title).endsWith(', The')) {
-          title = `The ${S(title).chompRight(', The').s}`;
-        }
-
-        show.title = title;
-        show.status = $(e)
-          .find('td')
-          .eq(2)
-          .find('font')
-          .attr('class');
-
-        if (options && options.query) {
-          if (show.title.toLowerCase().search(options.query.toLowerCase()) >= 0) {
-            list.push(show);
-          }
-        } else {
-          list.push(show);
-        }
-      });
-    }
-  });
+          return { url, title, status };
+        })
+        .get();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
 }
 
 function getShowEpisodes(showId: string) {
-  request(`${urlRoot}shows/${showId}/`, (error, response, body) => {
+  request(`${urlRoot}shows/${showId}/`, (error, response, res) => {
     if (!error && response.statusCode === 200) {
       const result = {
         id: showId,
         episodes: []
       };
 
-      const $ = cheerio.load(body);
+      const $ = cheerio.load(res);
+
       result.title = $('td.section_post_header').eq(0).find('b').text();
 
       const $episodes = $('table.forum_header_noborder tr[name=hover]');
@@ -92,6 +81,7 @@ function getShowEpisodes(showId: string) {
           .text();
 
         const titleRegex = episode.title.match(/(.+) s?(\d+)[ex](\d+)(e(\d+))?(.*)/i);
+
         if (titleRegex) {
           episode.show = titleRegex[1];
           episode.seasonNumber = parseInt(titleRegex[2], 10);
