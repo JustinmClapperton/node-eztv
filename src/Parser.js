@@ -7,10 +7,10 @@ import string from 'string';
 /**
  * @NOTE: An alternative API endpoint is https://eztv-proxy.net
  */
-const urlRoot = 'https://eztv.ag';
+const urlRoot = 'https://eztv.unblocked.stream';
 
-function getShows(options: Object) {
-  return fetch('https://eztv.ag/showlist/')
+function getShows(options: Object = {}) {
+  return fetch(`${urlRoot}/showlist/`)
     .then(res => res.text())
     .then(res => {
       const $ = cheerio.load(res);
@@ -47,7 +47,7 @@ function getShows(options: Object) {
 }
 
 function getShowEpisodes(showId: string) {
-  request(`${urlRoot}shows/${showId}/`, (error, response, res) => {
+  return fetch(`${urlRoot}shows/${showId}/`, (error, response, res) => {
     if (!error && response.statusCode === 200) {
       const result = {
         id: showId,

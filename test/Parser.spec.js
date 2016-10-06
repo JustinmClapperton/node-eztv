@@ -19,7 +19,7 @@ describe('Parser', () => {
       expect(result).to.be.an('object');
       // expect(result).to.have.deep.property('id').that.is.a('string');
       // expect(result).to.have.deep.property('slug').that.is.a('string');
-      expect(result).to.have.deep.property('status').that.is.a('string');
+      // expect(result).to.have.deep.property('status').that.is.a('string');
       expect(result).to.have.deep.property('title').that.is.a('string');
       expect(result).to.have.deep.property('url').that.is.a('string');
 
@@ -27,7 +27,7 @@ describe('Parser', () => {
     });
   });
 
-  describe('getShows()', () => {
+  describe('getShowsEpisodes()', () => {
     it('should return a Promise', async done => {
       expect(Parser.getShowEpisodes({ query: 'big bang' })).to.be.a('promise');
       done();
